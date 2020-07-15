@@ -38,7 +38,7 @@
 <meta property="og:image" content="http://yoursite.com/.com//SwooleUDP.png">
 <meta property="og:image" content="http://yoursite.com/.com//UDPVSSwoole.png">
 <meta property="article:published_time" content="2020-07-15T10:40:30.000Z">
-<meta property="article:modified_time" content="2020-07-15T10:59:10.013Z">
+<meta property="article:modified_time" content="2020-07-15T11:41:56.472Z">
 <meta property="article:author" content="wen yu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://yoursite.com/.com//%E5%8D%8F%E7%A8%8B.png">
@@ -186,7 +186,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2020-07-15 18:40:30 / Modified: 18:59:10" itemprop="dateCreated datePublished" datetime="2020-07-15T18:40:30+08:00">2020-07-15</time>
+              <time title="Created: 2020-07-15 18:40:30 / Modified: 19:41:56" itemprop="dateCreated datePublished" datetime="2020-07-15T18:40:30+08:00">2020-07-15</time>
             </span>
 
           
@@ -233,7 +233,7 @@
 
 <p>所谓用户态，不需要操作系统控制，指的就是协程的创建销毁、协程之间的调度和切换都是进程自己控制的。<code>线程是CPU调度的基本单元，协程是寄宿在线程内的</code></p>
 <p><code>协程本质上就是个内存数据结构</code>，其实和进程一样，但是比进程轻量多了，占用的内存空间小。<br>协程的上下文小，也就是所占的空间小，一个进程能轻松创建成千上万个协程，并且协程之前的切换成本也小。<br>可以类比：进程切换好比跨部门沟通、线程切换好比本部门内沟通，协程切换就是团队内沟通了。</p>
-<p><img src="/.com//%E5%8D%8F%E7%A8%8B.png" alt></p>
+<p><img src="/.com//%E5%8D%8F%E7%A8%8B.png" alt="协程"></p>
 <p><code>stackless也就是无额外栈分配, stackfull就是有栈空间分配</code>。<br>对于像对SWOOLE这种单进程单线程的模型来说，由于一个线程只能被同时被一个cpu调度，从执行时序上来看，cpu在某个时刻也只能执行一个协程而已（并非并行），但是有栈和无栈的协程，在被挂起时的自由度是不一样的，有栈协程比无栈协程高很多，无栈协程无法其任意嵌套函数中被挂起，有栈协程只能在yield入口被挂起（牵涉到计算机底层细节，之后的博文会在详细分析）。并且实际项目开发中，使用stackless协程，你需要对<code>yield</code> 的语义进行深入理解以及对每一级的调用都修改为 <code>yield</code>，这会极大的影响你的开发效率和代码的可读性。</p>
 <p>与同步阻塞模式不同，我们期望程序是并发执行的，也就是同一时间内 Server 会存在多个请求，因此应用程序必须为每个客户端或请求，创建不同的资源和上下文。否则不同的客户端和请求之间可能会产生数据和逻辑错乱。<br><code>而stackfull协程真正的实现了一个进程处理能实现多个连接，为每一个请求分配一个寄存器和栈来保存请求状态</code>。</p>
 <p>用图形象说明下<br><img src="/.com//%E5%A4%9A%E8%BF%9E%E6%8E%A5.png" alt></p>
