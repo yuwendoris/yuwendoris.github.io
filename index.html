@@ -148,7 +148,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/07/14/%E8%B7%B3%E5%87%BAfpm%EF%BC%8C%E6%8B%A5%E6%8A%B1%E9%AB%98%E6%80%A7%E8%83%BD%E5%BC%82%E6%AD%A5%E5%8D%8F%E7%A8%8B/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/07/15/%E8%B7%B3%E5%87%BAfpm%EF%BC%8C%E6%8B%A5%E6%8A%B1%E9%AB%98%E6%80%A7%E8%83%BD%E5%BC%82%E6%AD%A5%E5%8D%8F%E7%A8%8B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -162,7 +162,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/07/14/%E8%B7%B3%E5%87%BAfpm%EF%BC%8C%E6%8B%A5%E6%8A%B1%E9%AB%98%E6%80%A7%E8%83%BD%E5%BC%82%E6%AD%A5%E5%8D%8F%E7%A8%8B/" class="post-title-link" itemprop="url">跳出fpm，拥抱高性能异步协程</a>
+            <a href="/2020/07/15/%E8%B7%B3%E5%87%BAfpm%EF%BC%8C%E6%8B%A5%E6%8A%B1%E9%AB%98%E6%80%A7%E8%83%BD%E5%BC%82%E6%AD%A5%E5%8D%8F%E7%A8%8B/" class="post-title-link" itemprop="url">跳出fpm，拥抱高性能异步协程</a>
         </h2>
 
         <div class="post-meta">
@@ -173,7 +173,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2020-07-14 18:44:40 / Modified: 18:45:13" itemprop="dateCreated datePublished" datetime="2020-07-14T18:44:40+08:00">2020-07-14</time>
+              <time title="Created: 2020-07-15 18:40:30 / Modified: 18:59:10" itemprop="dateCreated datePublished" datetime="2020-07-15T18:40:30+08:00">2020-07-15</time>
             </span>
 
           
@@ -188,20 +188,19 @@
 
       
           <h4 id="1-前言"><a href="#1-前言" class="headerlink" title="1. 前言"></a><strong>1. 前言</strong></h4><p>三年的PHP开发工作经历，诚然一直到目前为止都沉浸在PHP作为WEB服务端开发的快感中。由于最近在工作上碰到了瓶颈，想尽快的跳脱出这个舒适圈。本文适合想跳脱只做<code>CURD</code>的php程序员们，但是文章中探讨的<code>&quot;高并发&quot;、“异步”、“协程”</code>，这些概念或者说是<code>计算机抽象设计艺术</code>，是不受编程语言所局限的，其他编程语言的程序员想了解这些概念也是合适的。文章分析的是PHP语言，demo也都是以PHP描述的，高并发协程异步的例子会使用SWOOLE描述，会借用SWOOLE进行简单的分析，但绝不是给SWOOLE打广告，只是为了给大家一个具象的体会。相信当你足够牛逼的时候，也能自己开发一个这样的一个工具，这也是我近2年的目标，当然还要吸取很多的知识。</p>
-<p><img src="http://img.doutula.com/production/uploads/image/2017/05/16/20170516947907_fxjkcz.gif" alt=""></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">php的优势：</span><br><span class="line">1、简单，PHP相比其他语言更容易入门和掌握。PHP常用的数据结构都内置了，使用起来方便简单，也一点都不复杂。</span><br><span class="line">2、功能非常强大，PHP官方的标准库和扩展库里提供了做服务器编程能用到的99%的东西。</span><br><span class="line">3、web编程领域，LNMP框架下服务的工业级稳定和可靠性。</span><br><span class="line">4、能快速开发。</span><br></pre></td></tr></table></figure>
 <p>但纵观PHP在编程语言领域的排行却在是逐年下滑，当然在传统web开发领域还是占绝对霸主地位的。但在移动互联网、云计算、大数据、人工智能等其他大的领域都没有生态。除了web生态，几乎没有其他的生态。但即使是在web领域，有高并发，大流量要求的web项目也在逐渐被java等语言所重写(有了swoole可能好一些)。<br>做不了复杂大型的server，PHP程序员陷入在无止尽的CURD的业务开发中。</p>
 <h4 id="2-PHP的劣势"><a href="#2-PHP的劣势" class="headerlink" title="2. PHP的劣势"></a><strong>2. PHP的劣势</strong></h4><p>剖析下php的劣势，到底哪些问题导致php除了web领域外，没有生态。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1、单进程单线程模型，后期代码层面提速空间有限。&#96;yield?  pthreads?&#96;</span><br><span class="line">2、核心异步网络不支持。&#96;libevent?&#96;</span><br><span class="line">3、cli模式编程不够强大</span><br></pre></td></tr></table></figure>
-<p>针对1、2问题，PHP没有其他语言内置支持的线程、协程的调度模型，单进程单线程模型 + 不支持异步编程，导致一个客户端连接就要占一整个进程资源，一个一旦执行到I/O相关的阻塞代码，整个进程都会陷入睡眠，让出cpu控制权给其他进程。直到I/O返回，再重新等待分配cpu资源执行后续的代码。<br>有个<code>误区</code>想说明下，<code>实际上同步阻塞程序的性能并不差，它的效率很高，不会浪费资源</code>。当进程发生阻塞后，操作系统会将它挂起，不会分配CPU，并不是说发生阻塞就使该进程所占的cpu时间片内发生cpu空转现象。只是QPS低，在高并发的请求下，后来的接口响应会越来越慢，操作系统可以创建的进程数量是有限的，还有大量进程会带来额外的进程调度消耗。<br>那么横向扩展进程数量来解决并发问题呢？并发能离取决于工作进程的数量，还有大量进程间的切换成本。而且创建一个进程占了操作系统很多资源。 这种对进程资源的浪费，可以打个比方，以开印刷厂为例，租了个1000平米的，经过政府各种复杂的审批流程，也为这个印刷厂申请了各种资质认证，但这个印刷厂却只有一台普通产能的印刷机，来处理订单。要想增大产能，得再开厂，但是每个厂都只有一台印刷机工作。<br><img src="http://ww3.sinaimg.cn/bmiddle/6af89bc8gw1f8u6rgwm5ij20b40b4dgy.jpg" alt="我已经为你的傻逼浪费了金钱，难道还要浪费我的时间？_浪费_傻逼_金钱表情"></p>
-<p>所以问题本质是：<code>一个进程只能处理并发处理一个请求，其实是对cpu和进程资源的浪费</code>。<br><img src="http://img.doutula.com/production/uploads/image/2018/05/10/20180510882656_EmYSJH.gif" alt=""></p>
-<p>这时肯定有人会说PHP有协程，可以使用<a href="https://www.php.net/manual/zh/language.generators.overview.php" target="_blank" rel="noopener">yield</a>就开启协程，但是php的yield是个stackless的协程，也就是无新开栈的协程，本质和单进程单线程模型没区别。<code>yeild更像是实现进程多任务协作的语法糖</code>。<br>肯定还会有人说PHP也有<a href="https://www.php.net/manual/zh/book.pthreads.php" target="_blank" rel="noopener">pthreads</a>扩展，来提供实现单进程多线程模型。但是只能用在CLI命令行环境下，而且线程间通信机制和锁机制的不完善，无法贸贸然应用到生产环境(线上一旦出现奇怪问题无法及时有效的解决，那就是发布事故啦，严重影响绩效)。<br><img src="http://img.doutula.com/production/uploads/image/2018/08/25/20180825163495_vRypMr.jpg" alt=""></p>
+<p>针对1、2问题，PHP没有其他语言内置支持的线程、协程的调度模型，单进程单线程模型 + 不支持异步编程，导致一个客户端连接就要占一整个进程资源，一个一旦执行到I/O相关的阻塞代码，整个进程都会陷入睡眠，让出cpu控制权给其他进程。直到I/O返回，再重新等待分配cpu资源执行后续的代码。<br>有个<code>误区</code>想说明下，<code>实际上同步阻塞程序的性能并不差，它的效率很高，不会浪费资源</code>。当进程发生阻塞后，操作系统会将它挂起，不会分配CPU，并不是说发生阻塞就使该进程所占的cpu时间片内发生cpu空转现象。只是QPS低，在高并发的请求下，后来的接口响应会越来越慢，操作系统可以创建的进程数量是有限的，还有大量进程会带来额外的进程调度消耗。<br>那么横向扩展进程数量来解决并发问题呢？并发能离取决于工作进程的数量，还有大量进程间的切换成本。而且创建一个进程占了操作系统很多资源。 这种对进程资源的浪费，可以打个比方，以开印刷厂为例，租了个1000平米的，经过政府各种复杂的审批流程，也为这个印刷厂申请了各种资质认证，但这个印刷厂却只有一台普通产能的印刷机，来处理订单。要想增大产能，得再开厂，但是每个厂都只有一台印刷机工作。</p>
+<p>所以问题本质是：<code>一个进程只能处理并发处理一个请求，其实是对cpu和进程资源的浪费</code>。</p>
+<p>这时肯定有人会说PHP有协程，可以使用<a href="https://www.php.net/manual/zh/language.generators.overview.php" target="_blank" rel="noopener">yield</a>就开启协程，但是php的yield是个stackless的协程，也就是无新开栈的协程，本质和单进程单线程模型没区别。<code>yeild更像是实现进程多任务协作的语法糖</code>。<br>肯定还会有人说PHP也有<a href="https://www.php.net/manual/zh/book.pthreads.php" target="_blank" rel="noopener">pthreads</a>扩展，来提供实现单进程多线程模型。但是只能用在CLI命令行环境下，而且线程间通信机制和锁机制的不完善，无法贸贸然应用到生产环境(线上一旦出现奇怪问题无法及时有效的解决，那就是发布事故啦，严重影响绩效)。</p>
 <p>对于异步有人说可以使用通过PHP的<a href="https://www.php.net/libevent" target="_blank" rel="noopener">libevent</a>扩展驱动呀，但是libevent已经7年没有更新了，支持的php的最高版本是6.0。</p>
 <p>对于问题3，大家都知道PHP有<code>fpm模式和cli模式</code>。fpm更简单，也是现阶段php开发的主流。而cli模式，大多数phper是用来脚本的。HTTP/HTTPS这些协议的解析和实现，并不需要PHP-FPM下的PHP程序关心,单个请求内的脚本运行周期,也不用担心内存泄漏这种问题,还有就是PHP-FPM自带一套进程管理机制,保证总是有工作进程在服务,服务基本上是不会中断的，开发者不需要考虑太多业务逻辑之外的问题。题外话，大部分PHPer就是在php-fpm下过的太安逸了，随着年龄增长，日复一日的CURD日子，不知道大家有没有为自己的核心竞争力在哪里所焦虑过？</p>
 <p>而如果你是自己基于cli写一个稍微复杂的server, 你就需要关心很多东西。<br>1、要自己实现一套进程管理机制，保证服务进程因为代码出错后自动重启一个新的进程，比如说php语法错误会导致cli进程直接退出，却不会导致fpm进程退出。<br>2、还要自己实现一套多进程架构来利用cpu多核。<br>3、为了超越fpm这种阻塞型架构，还得为你的cli服务增加事件驱动的支持，php需要用到event(libevent）这类的事件通知库，来体现出单个进程维持C10K个连接这种不具备的能力。<br>4、还得自己实现网络协议的解析，把读到的原始数据，进行解析，fpm里面我们可以使用fpm解析完成的<code>$_SERVER,$_POST,$_GET,$_COOKIE,$_SERVER</code>这些全局变量来拿到这些数据</p>
 <p>而cli目前还是比较糙的，提供的很多api还是接近于底层的原始接口，容易使用出错，要求开发者的<code>扎实的基础知识</code>以及<code>linux编程能力</code>，不然每一步都<code>举步维艰</code>。 </p>
 <h4 id="3-渴求PHP拥有的能力"><a href="#3-渴求PHP拥有的能力" class="headerlink" title="3. 渴求PHP拥有的能力"></a><strong>3. 渴求PHP拥有的能力</strong></h4><h5 id="3-1-进程管理"><a href="#3-1-进程管理" class="headerlink" title="3.1  进程管理"></a>3.1  进程管理</h5><p><strong>我们需要完善的进程管理机制</strong></p>
-<p><img src="http://img.doutula.com/production/uploads/image/2017/03/11/20170311231497_JMaucV.png" alt=""><br><code>什么是进程？什么是进程管理？进程管理需要什么？</code></p>
+<p><code>什么是进程？什么是进程管理？进程管理需要什么？</code></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">维基百科：进程是一个资源分配的单位。每个进程在操作系统中都有一个“进程控制块PCB*”来描述一个进程，在linux中使用 task_struct 这个结构体描述一个进程&#x2F;线程。”PCB” 就是为了描述控制进程的运行，系统中存放进程的管理和控制信息的数据结构称为进程控制块（PCB Process Control Block），它是进程实体的一部分，是操作系统中最重要的记录性数据结构。</span><br></pre></td></tr></table></figure>
 <p>听着有点懵，记住它就是个<code>很复杂的数据结构</code>就可以了。</p>
 <p>提到进程管理，首先要知道<code>进程间的组织方式：父子关系</code>。<br>每个进程都有父进程，而所有的进程以init（内核0号）进程为根，形成一个树状结构。<br>父子间进程管理保证：父进程退出，要通知所有的子进程退出，避免产生孤儿进程；子进程退出。要通知父进程回收资源，避免产生僵尸进程。</p>
@@ -221,13 +220,13 @@
 
 <p>所谓用户态，不需要操作系统控制，指的就是协程的创建销毁、协程之间的调度和切换都是进程自己控制的。<code>线程是CPU调度的基本单元，协程是寄宿在线程内的</code></p>
 <p><code>协程本质上就是个内存数据结构</code>，其实和进程一样，但是比进程轻量多了，占用的内存空间小。<br>协程的上下文小，也就是所占的空间小，一个进程能轻松创建成千上万个协程，并且协程之前的切换成本也小。<br>可以类比：进程切换好比跨部门沟通、线程切换好比本部门内沟通，协程切换就是团队内沟通了。</p>
-<p><img src="/img/bVbI3Qb" alt="image.png"></p>
+<p><img src="/.com//%E5%8D%8F%E7%A8%8B.png" alt></p>
 <p><code>stackless也就是无额外栈分配, stackfull就是有栈空间分配</code>。<br>对于像对SWOOLE这种单进程单线程的模型来说，由于一个线程只能被同时被一个cpu调度，从执行时序上来看，cpu在某个时刻也只能执行一个协程而已（并非并行），但是有栈和无栈的协程，在被挂起时的自由度是不一样的，有栈协程比无栈协程高很多，无栈协程无法其任意嵌套函数中被挂起，有栈协程只能在yield入口被挂起（牵涉到计算机底层细节，之后的博文会在详细分析）。并且实际项目开发中，使用stackless协程，你需要对<code>yield</code> 的语义进行深入理解以及对每一级的调用都修改为 <code>yield</code>，这会极大的影响你的开发效率和代码的可读性。</p>
 <p>与同步阻塞模式不同，我们期望程序是并发执行的，也就是同一时间内 Server 会存在多个请求，因此应用程序必须为每个客户端或请求，创建不同的资源和上下文。否则不同的客户端和请求之间可能会产生数据和逻辑错乱。<br><code>而stackfull协程真正的实现了一个进程处理能实现多个连接，为每一个请求分配一个寄存器和栈来保存请求状态</code>。</p>
-<p>用图形象说明下<br><img src="/img/bVbI3Qe" alt="image.png"></p>
+<p>用图形象说明下<br><img src="/.com//%E5%A4%9A%E8%BF%9E%E6%8E%A5.png" alt></p>
 <p>这张图想把具体的业务和协程结合，做个具象的表述。<br>以登陆接口: php先对参数进行正则校验，然后从数据库查询密码，php代码判断密码是否正确，再从数据库中查询用户权限，php判断用户权限是否匹配，最后查询出详细的用户信息。<br>横向表示单进程请求量，纵坐标表示请求处理时间。<br>图中每一条，表示一个请求要做的事情。<br>红色的是代表io操作，绿色的标代表非io操作。</p>
 <p>3.3 异步<br>刚刚提到问题本质。那么衍生为我们期望能解决的问题是：怎么能让单进程能并发处理多个连接？<br><code>而异步则为并发提供了可能</code></p>
-<p><img src="/img/bVbI3Qf" alt="image.png"></p>
+<p><img src="/.com//%E5%BC%82%E6%AD%A5.png" alt></p>
 <p>编程语言层面的异步指的是让CPU暂时搁置当前请求的响应,处理下一个请求,当通过轮询或其他方式得到回调通知后，开始运行。</p>
 <p>异步其实就是一种协作机制。<br>异步有2个主体，对于swoole来说：就是swoole进程+内核进程。异步通过<a href="https://baike.baidu.com/item/epoll/10738144?fr=aladdin" target="_blank" rel="noopener">epoll</a>（linux的系统调用）得到回到通知，来并发处理请求。</p>
 <p>以这个登陆接口为例，简单解释下协程（单进程单线程多协程模型下）和异步是怎么配合的。其实swoole就是一直循环在消费epoll的就绪队列。进程开启，发现就绪队列上有2个请求进来啦，swoole开启了2个协程，分别处理这2个请求，执行完第一个协程的正则校验入参后，这个协程发生了I/O事件去数据库查询密码，于是进程把cpu的控制权交给了另外一个协程去处理校验入参，也发生了I/O事件。这时cpu分配给进程的时间片消费完了，进程被强制让出cpu控制权。等到CPU控制权再交给该进程的时候，发现就绪队列上有三个事件，2个是已有协程的产生的I/O事件结果返回了，1个是新的请求连接产生了。进程会依次调度已有的两个协程进程密码是否正确的判断，在新开一个协程去处理新连接的正则校验入参。一直循环往下，直到协程执行完，资源被回收。</p>
@@ -240,26 +239,26 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$s &#x3D; microtime(true);</span><br><span class="line"></span><br><span class="line">Co\run(function() &#123;</span><br><span class="line">    for ($i &#x3D; 0; $i &lt;&#x3D; 3000; $i++) &#123;</span><br><span class="line">        go(function () use ($i) &#123;</span><br><span class="line">                co::sleep(0.003);</span><br><span class="line">                echo &quot;task&#123;$i&#125;\n&quot;;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">echo &#39;use &#39; . (microtime(true) - $s) . &#39; s&#39;;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; output: 0.14848017692566</span><br></pre></td></tr></table></figure>
 <p>执行时间上差了大概100倍，而且随着循环次数的增加，<code>花费的时间是呈指数增长的</code>。</p>
 <h4 id="4-socket编程"><a href="#4-socket编程" class="headerlink" title="4. socket编程"></a><strong>4. socket编程</strong></h4><p>完善的server服务，就必须要实现进程间相互通信，包括协程间的socket通信，都需要扩展PHP的请求生命周期，通信就离不开网络编程。</p>
-<p><code>什么是socket</code><br><img src="/img/bVbI3Qo" alt="image.png"></p>
+<p><code>什么是socket</code><br><img src="/.com//socket.png" alt></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">我们经常把Socket翻译为套接字，socket是在应用层和传输层之间的一个抽象层，它把TCP&#x2F;IP层复杂的操作抽象为几个简单的接口供应用层调用以实现进程在网络中通信。</span><br><span class="line">socket编程也就是网络编程，其实也就是操作系统提供给开发人员进行网络开发的API接口开发。</span><br></pre></td></tr></table></figure>
 
-<p><strong><code>TCP</code></strong><br><code>基本tcp客户/服务器程序套接字函数</code><br><img src="/img/bVbI3Qp" alt="image.png"></p>
+<p><strong><code>TCP</code></strong><br><code>基本tcp客户/服务器程序套接字函数</code><br><img src="/.com//TCP.png" alt></p>
 <p>图示为<code>TCP/服务器交互中发生的典型情形的时间线图</code>。</p>
 <p>上面的这些函数就是操作系统提供给应用进程的套接字的内核api。</p>
 <p>简单描述下来流程就是，服务器和客户端各自开启一个tcp的socket连接，服务端绑定监听端口，一直阻塞到该端口发生连接请求，这时客户端向服务端该端口发起连接请求，经过三次握手后，成功与服务端建立起连接。客户端向服务端发送数据，服务端读取数据，并处理该请求，处理完成后，发回数据应答。这边的write()和read()存在循环的原因，是因为存在需传输数据量较大的情况下，会出现数据分包，进行多次传输处理的情况。一直等到客户端请求结束，向服务端结束通知，服务端读取到通知，经过四次挥手就关闭了这个请求连接。</p>
-<p><img src="http://img.doutula.com/production/uploads/image/2018/09/16/20180916103534_ycMXOA.jpg" alt=""><br><code>时序图也有了，操作系统把api也提供了。让你实现个tcp服务呢？</code><br>还是很麻烦的，你得自己把这些把这些api函数串联成完整的流程，需要处理分包分批请求的情况，还有很多细节要处理。</p>
-<p><img src="/img/bVbI3Qr" alt="image.png"><br>swoole就帮我们隐藏掉了细节，对这些内核api又做了封装，让我们使用起来更简单。</p>
+<p><code>时序图也有了，操作系统把api也提供了。让你实现个tcp服务呢？</code><br>还是很麻烦的，你得自己把这些把这些api函数串联成完整的流程，需要处理分包分批请求的情况，还有很多细节要处理。</p>
+<p><img src="/.com//SwooleTCP.png" alt><br>swoole就帮我们隐藏掉了细节，对这些内核api又做了封装，让我们使用起来更简单。</p>
 <p>这样就创建了一个 TCP 服务器，监听本机 9501 端口。它的逻辑很简单，当客户端 Socket 通过网络发送一个 hello 字符串时，服务器会回复一个 Server: hello 字符串。</p>
-<p><img src="/img/bVbI3Qv" alt="image.png"><br><code>把流程图与swoole的api关联起来看。</code><br>不得不感叹swoole封装做得真的很绝妙。<br><img src="http://img.doutula.com/production/uploads/image/2017/07/12/20170712870045_TLdDOQ.jpg" alt=""></p>
+<p><img src="/.com//TCPVSSwoole.png" alt><br><code>把流程图与swoole的api关联起来看。</code><br>不得不感叹swoole封装做得真的很绝妙。</p>
 <p><strong><code>UDP</code></strong><br><code>基本udp客户/服务器程序套接字函数</code></p>
-<p><img src="/img/bVbI3Qw" alt="image.png"></p>
+<p><img src="/.com//UDP.png" alt></p>
 <p>图示为UDP/服务器交互中发生的典型情形的时间线图。</p>
 <p>UDP 服务器与 TCP 服务器不同，UDP 没有连接的概念。<br>简单描述下来流程就是，服务器和客户端各自开启一个udp的socket连接，服务端绑定监听端口，一直阻塞到收到客户端的数据，客户端向服务端发送数据，服务端接受数据，处理请求，返回应答。客户端处理完数据，关闭连接。</p>
 <p><code>UPD server demo</code></p>
-<p><img src="/img/bVbI3Qy" alt="image.png"></p>
+<p><img src="/.com//SwooleUDP.png" alt></p>
 <p>创建UDP server的demo。</p>
 <p>启动 Server 后，客户端无需 Connect，直接可以向 Server 监听的 9502 端口发送数据包。对应的事件为 onPacket。</p>
-<p><img src="/img/bVbI3Qz" alt="image.png"><br><code>UDP的流程图与swoole的api结合起来看。</code></p>
+<p><img src="/.com//UDPVSSwoole.png" alt><br><code>UDP的流程图与swoole的api结合起来看。</code></p>
 <h4 id="最后"><a href="#最后" class="headerlink" title="最后"></a><strong>最后</strong></h4><p>本文的分析就到这里为止了，由于有些是和理论相关的东西，如果有错误，希望大家指出来，我会及时修改，这里先谢谢大家。<br>最近<br>1、实现和分析stackless和stackful协程。<br>2、会基于linux提供的socket服务器，自己用首先c实现<code>tcp server\udp server\http server\websocket server</code>，然后会对swoole的server进行源码级别的分析，再进行实现对比分析。<br>大家有兴趣可以继续关注。</p>
 <p>最后的最后，想说<code>程序员要一直在路上，不断跳脱出自己的舒适圈</code>。</p>
 
